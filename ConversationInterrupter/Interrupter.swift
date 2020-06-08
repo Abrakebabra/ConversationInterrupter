@@ -9,6 +9,7 @@
 import Foundation
 import Speech
 import AVFoundation
+import Cocoa
 
 
 class Interrupter {
@@ -17,10 +18,14 @@ class Interrupter {
     let bufferRecogRequest: SFSpeechAudioBufferRecognitionRequest
     let audioEngine: AVAudioEngine
     let inputNode: AVAudioInputNode
+    let test = NSSpeechRecognizer()
     let bus: Int
     let bufferSize: AVAudioFrameCount
     let recordingFormat: AVAudioFormat
+    var recognitionTask: SFSpeechRecognitionTask?
     let karen: Karen
+    let queue: DispatchQueue
+    var words: String = ""
     
     enum Errors: Error {
         case speechRecognizerNotAvailable
@@ -35,41 +40,53 @@ class Interrupter {
         } else {
             throw Errors.speechRecognizerNotAvailable
         }
+        
         bufferRecogRequest = SFSpeechAudioBufferRecognitionRequest()
         bufferRecogRequest.shouldReportPartialResults = true
         bufferRecogRequest.requiresOnDeviceRecognition = true
         audioEngine = AVAudioEngine()
-        audioEngine.prepare()
         inputNode = audioEngine.inputNode
         bus = 0
         bufferSize = 1024
         recordingFormat = inputNode.outputFormat(forBus: bus)
         karen = Karen()
+        queue = DispatchQueue(label: "queue", attributes: .concurrent)
+        
         
     } // Interrupter.init()
     
     
     func micToRequest() throws {
-        try audioEngine.start()
-        inputNode.installTap(onBus: bus, bufferSize: bufferSize, format: recordingFormat) {
+        self.inputNode.installTap(onBus: self.bus, bufferSize: self.bufferSize, format: self.recordingFormat) {
             (buffer: AVAudioPCMBuffer, _) in
             self.bufferRecogRequest.append(buffer)
         }
+        audioEngine.prepare()
+        try audioEngine.start()
     } // Interrupter.micToRequest()
     
     
     func recognize() {
-        let recognitionTask = speechRecognizer.recognitionTask(with: bufferRecogRequest) {
+        print("recognize initialized")
+        self.recognitionTask = self.speechRecognizer.recognitionTask(with: self.bufferRecogRequest) {
             (result, error) in
-            
-            if let error = error {
-                print(error)
+            self.queue.async {
+                self.words = result?.bestTranscription.formattedString as! String
+                print("recognitionTask closure called")
+                if let error = error {
+                    print(error)
+                }
+                
+                if let result = result {
+                    self.words = result.bestTranscription.formattedString
+                    print(result.bestTranscription.formattedString)
+                    //self.karen.checkTrigger(inputPhrase: result.bestTranscription.formattedString)
+                }
             }
             
-            if let result = result {
-                self.karen.checkTrigger(inputPhrase: result.bestTranscription.formattedString)
-            }
         }
+        
+        
     } // Interrupter.recognize()
     
 }
