@@ -20,49 +20,56 @@ class Interrupter {
     let bus: Int
     let bufferSize: AVAudioFrameCount
     let recordingFormat: AVAudioFormat
+    let karen: Karen
     
     enum Errors: Error {
         case speechRecognizerNotAvailable
     }
     
-    var notification: (() -> ()) = {
-        
-    }
+    
     
     init() throws {
         
         if let sR = SFSpeechRecognizer(locale: Locale(identifier: "en-US")) {
-            self.speechRecognizer = sR
+            speechRecognizer = sR
         } else {
             throw Errors.speechRecognizerNotAvailable
         }
-        self.bufferRecogRequest = SFSpeechAudioBufferRecognitionRequest()
-        self.audioEngine = AVAudioEngine()
-        self.audioEngine.prepare()
-        self.inputNode = self.audioEngine.inputNode
-        self.bus = 0
-        self.bufferSize = 1024
+        bufferRecogRequest = SFSpeechAudioBufferRecognitionRequest()
+        bufferRecogRequest.shouldReportPartialResults = true
+        bufferRecogRequest.requiresOnDeviceRecognition = true
+        audioEngine = AVAudioEngine()
+        audioEngine.prepare()
+        inputNode = audioEngine.inputNode
+        bus = 0
+        bufferSize = 1024
+        recordingFormat = inputNode.outputFormat(forBus: bus)
+        karen = Karen()
         
-        self.recordingFormat = self.inputNode.outputFormat(forBus: self.bus)
     } // Interrupter.init()
     
     
     func micToRequest() throws {
-        try self.audioEngine.start()
-        notification()
-        self.inputNode.installTap(onBus: self.bus, bufferSize: self.bufferSize, format: self.recordingFormat) {
+        try audioEngine.start()
+        inputNode.installTap(onBus: bus, bufferSize: bufferSize, format: recordingFormat) {
             (buffer: AVAudioPCMBuffer, _) in
             self.bufferRecogRequest.append(buffer)
         }
-        
-        
     } // Interrupter.micToRequest()
     
     
-    
     func recognize() {
-        let recognitionTask = SFSpeechRecognitionTask()
-        
+        let recognitionTask = speechRecognizer.recognitionTask(with: bufferRecogRequest) {
+            (result, error) in
+            
+            if let error = error {
+                print(error)
+            }
+            
+            if let result = result {
+                self.karen.checkTrigger(inputPhrase: result.bestTranscription.formattedString)
+            }
+        }
     } // Interrupter.recognize()
     
 }
