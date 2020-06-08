@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		644435FC248D4ACF008067BC /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 644435FB248D4ACF008067BC /* main.swift */; };
+		64443603248D4AEF008067BC /* interrupter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64443602248D4AEF008067BC /* interrupter.swift */; };
+		64A02F46248DDD3000777AE4 /* karen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64A02F45248DDD3000777AE4 /* karen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,8 @@
 /* Begin PBXFileReference section */
 		644435F8248D4ACF008067BC /* ConversationInterrupter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ConversationInterrupter; sourceTree = BUILT_PRODUCTS_DIR; };
 		644435FB248D4ACF008067BC /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		64443602248D4AEF008067BC /* interrupter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = interrupter.swift; sourceTree = "<group>"; };
+		64A02F45248DDD3000777AE4 /* karen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = karen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,8 @@
 			isa = PBXGroup;
 			children = (
 				644435FB248D4ACF008067BC /* main.swift */,
+				64443602248D4AEF008067BC /* interrupter.swift */,
+				64A02F45248DDD3000777AE4 /* karen.swift */,
 			);
 			path = ConversationInterrupter;
 			sourceTree = "<group>";
@@ -120,6 +126,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64443603248D4AEF008067BC /* interrupter.swift in Sources */,
+				64A02F46248DDD3000777AE4 /* karen.swift in Sources */,
 				644435FC248D4ACF008067BC /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
