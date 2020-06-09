@@ -23,7 +23,7 @@ class Interrupter {
     let bufferSize: AVAudioFrameCount
     let recordingFormat: AVAudioFormat
     var recognitionTask: SFSpeechRecognitionTask?
-    let karen: Karen
+    let karen: SpeechSynth
     let queue: DispatchQueue
     var words: String = ""
     
@@ -49,7 +49,7 @@ class Interrupter {
         bus = 0
         bufferSize = 1024
         recordingFormat = inputNode.outputFormat(forBus: bus)
-        karen = Karen()
+        karen = SpeechSynth()
         queue = DispatchQueue(label: "queue", attributes: .concurrent)
         
         

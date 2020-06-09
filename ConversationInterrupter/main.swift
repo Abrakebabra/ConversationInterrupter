@@ -8,19 +8,31 @@
 
 import Foundation
 
+let testQueue = DispatchQueue(label: "test")
+let testGroup = DispatchGroup()
+
+let a = SpeechSynth()
 
 
 var run = true
+testGroup.enter()
+
+
+
 
 while run {
     let input = readLine()
     
     switch input {
-    case "test":
+    case "manager":
+        a.checkTrigger(sentence: "manager")
         
+    case "children":
+        a.checkTrigger(sentence: "children")
         
     case "exit":
         run = false
+        testGroup.leave()
         
     default:
         continue
@@ -28,3 +40,6 @@ while run {
 }
 
 
+
+
+testGroup.wait()
