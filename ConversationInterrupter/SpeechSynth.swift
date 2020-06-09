@@ -9,16 +9,9 @@
 import Foundation
 import Speech
 
-let triggerAndBlab: [[String]] = [
-["manager", "The manager?  I want to see the manager!  I bought these at full price 2 weeks ago but I have 3 children to feed from my $120,000 income.  How the hell is a working mother supposed to live these days.  Your staff never asked me about any coupons.  I've had this coupon since August and it gives me 5% off.  I want a full refund.  I don't care if the toothpaste is half-empty."],
-["children", "My children?  Well I have 3 lovely children.  My eldest son is the captain of the soccer team, my youngest son is taking piano lessons and just got a college scholarship, he's also 8 by the way, and my daughter is taking jazz dance lessons but her teacher says perhaps she would be better suited to something with class like ballet.  She's also top of her class in every subject but that's normal these days.  I don't know how the school district is able to support her because how is she supposed to grow when there's no room left in the education system?"]
-    ]
 
 
-
-
-
-
+// MARK: Enum Voices
 enum Voices {
     /// American female - very good
     case allison
@@ -41,219 +34,177 @@ enum Voices {
     /// Russian male - excellent
     case yuri
     
-    func string() -> String {
+    
+    func voiceObj() -> AVSpeechSynthesisVoice? {
         switch self {
         case .allison:
-            return "com.apple.speech.synthesis.voice.allison.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.allison.premium")
         case .ava:
-            return "com.apple.speech.synthesis.voice.ava.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.ava.premium")
         case .katya:
-            return "com.apple.speech.synthesis.voice.katya.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.katya.premium")
         case .kyoko:
-            return "com.apple.speech.synthesis.voice.kyoko.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.kyoko.premium")
         case .otoya:
-            return "com.apple.speech.synthesis.voice.otoya.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.otoya.premium")
         case .samantha:
-            return "com.apple.speech.synthesis.voice.samantha.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.samantha.premium")
         case .serena:
-            return "com.apple.speech.synthesis.voice.serena.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.serena.premium")
         case .susan:
-            return "com.apple.speech.synthesis.voice.susan.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.susan.premium")
         case .tom:
-            return "com.apple.speech.synthesis.voice.tom.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.tom.premium")
         case .yuri:
-            return "com.apple.speech.synthesis.voice.yuri.premium"
+            return AVSpeechSynthesisVoice(identifier:
+                "com.apple.speech.synthesis.voice.yuri.premium")
         } // switch
-    } // string
+    }
 } // enum
 
 
+// MARK: Struct DialoguePortion
 struct DialoguePortion {
     let content: String                     // words
-    let pitchMultiplier: Float              // pitchMultiplier
+    let voice: AVSpeechSynthesisVoice?      // voice to use
+    let rate: Float                         // rate (Speech rates are values in the range between AVSpeechUtteranceMinimumSpeechRate and AVSpeechUtteranceMaximumSpeechRate. Lower values correspond to slower speech, and vice versa. The default value is AVSpeechUtteranceDefaultSpeechRate.)
+    let volume: Float
+    let pitch: Float              // pitchMultiplier
     let postUtteranceDelay: TimeInterval    // milliseconds
     let preUtteranceDelay: TimeInterval     // milliseconds
-    let rate: Float                         // rate (Speech rates are values in the range between AVSpeechUtteranceMinimumSpeechRate and AVSpeechUtteranceMaximumSpeechRate. Lower values correspond to slower speech, and vice versa. The default value is AVSpeechUtteranceDefaultSpeechRate.)
-    let voice: String                       // voice to use
-    let volume: Float
     
+    
+    
+    /// rate: 0.x-0.89,  volume: 0.x-1.0,  pitch 0.1-10.0? (once pitch is set, cannot be changed?)  delays: milliseconds
     init(content: String, voice: Voices,
-         _ pitch: Float = 1.0, _ postDelay: TimeInterval = 0.0, _ preDelay: TimeInterval = 0.0, _ rate: Float = AVSpeechUtteranceDefaultSpeechRate, _ volume: Float = 1.0) {
+         rate: Float = AVSpeechUtteranceDefaultSpeechRate, volume: Float = 1.0, pitch: Float = 1.0, postDelay: TimeInterval = 0.0, preDelay: TimeInterval = 0.0) {
         
+        // find out defaults and min/max ranges, and make a checker
         self.content = content
-        self.pitchMultiplier = pitch
+        self.pitch = pitch
         self.postUtteranceDelay = postDelay
         self.preUtteranceDelay = preDelay
         self.rate = rate
-        self.voice = voice.string()
+        self.voice = voice.voiceObj()
         self.volume = volume
         
     }
 }
 
 
+
+// MARK: Struct Dialogue
+struct Dialogue {
+    let trigger: String
+    let dialogue: [DialoguePortion]
+    
+    init(trigger: String, dialogue: [DialoguePortion]) {
+        self.trigger = trigger
+        self.dialogue = dialogue
+    }
+}
+
+
+
+// MARK: Dialogues
+var dialogues: [Dialogue] = [
+    Dialogue(trigger: "manager", dialogue: [
+        DialoguePortion(content: "The manager?  The manager!  I want to see the manager!", voice: .samantha, rate: 0.35),
+        DialoguePortion(content: "I bought these at full price 2 weeks ago but I have 3 children to feed from my one hundred and twenty thousand dollar income.  How the hell is a working mother supposed to live these days.  Your staff never asked me about any coupons.  I've had this coupon since August and it gives me 5% off.", voice: .samantha, rate: 0.35),
+        DialoguePortion(content: "I want a full refund.", voice: .samantha, rate: 0.35),
+        DialoguePortion(content: "Eye. Don't. Care if the toothpaste is half-empty.", voice: .samantha, rate: 0.3)
+    ]),
+    Dialogue(trigger: "children", dialogue: [
+        DialoguePortion(content: "Children?", voice: .samantha, rate: 0.3),
+        DialoguePortion(content: "My children?", voice: .samantha, rate: 0.3),
+        DialoguePortion(content: "Well.", voice: .samantha, rate: 0.25),
+        DialoguePortion(content: "I have three lovely children.", voice: .samantha, rate: 0.3),
+        DialoguePortion(content: "My eldest son is the captain of the soccer team.  My youngest son is taking piano lessons and just got a college scholarship, he's also 8 by the way, and my daughter is taking jazz dance lessons but her teacher says perhaps she would be better suited to something with class, like ballet.  She's also top of her class in every subject, but that's normal these days.  I don't know how the school district is able to support her because how is she supposed to grow when there's no room left in the education system.", voice: .samantha, rate: 0.45)
+    ])
+]
+
+
+
+// MARK: Class SpeechSynth
 class SpeechSynth: AVSpeechSynthesizer {
     
-    let synth = self
+    private let synth = self
+    private let dispatchQueue: DispatchQueue
+    private let dispatchGroup: DispatchGroup
+    private var dialogue: [DialoguePortion]
+    var speakStarted: (() -> ())
+    var speakComplete: (() -> ())
     
-    // ["voice" : "String", "rate" : "Int", "content" : "String", ]
-    var dialogueCurrent: DialoguePortion = DialoguePortion(content: "initializing...", voice: Voices.yuri)
-    var dialogueQueue: [DialoguePortion] = []
     
-    var speakStarted: (() -> ()) = {}
-    var phraseComplete: (() -> ()) = {}
-    var speakComplete: (() -> ()) = {}
     
     override init() {
+        dispatchQueue = DispatchQueue(label: "synth queue")
+        dispatchGroup = DispatchGroup()
+        dialogue = []
+        speakStarted = {
+            print("spek started!")
+        }
+        speakComplete = {
+            print("spek finished!")}
+        
         super.init()
-        delegate = self
+        delegate = self     // inherited in extension
     }
     
     
-
-    
-    private func speakSegment() {
+    private func speakDialogue() {
+        self.speakStarted()
         
-        
-        //guard let rate = dialogueCurrent[1]["rate"] as! Float else
-        
-        //let rate = dialogueCurrent[1]["rate"]
-        //self.speak(<#T##utterance: AVSpeechUtterance##AVSpeechUtterance#>)
-    }
-    
-    func loadNPlay(dialogue: [[String : Any]]) {
-        dialogueQueue = dialogue
-        dialogueCurrent = dialogueQueue[0]
-        dialogueQueue.remove(at: 0)
-    }
-}
-
-extension SpeechSynth: AVSpeechSynthesizerDelegate {
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didStart utterance: AVSpeechUtterance) {
-        speakStarted()
-        print("spek started!")
-    }
-    
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        speakComplete()
-        print("spek finished!")
-    }
-}
-
-
-class Karen2: SpeechSynth {
-    
-    override init() {
-        super.init()
-    }
-    
-    func say(words: AVSpeechUtterance, voice: AVSpeechSynthesisVoice) {
-        let utterance = words
-        utterance.voice = voice
-        self.speak(words)
-    }
-}
-
-
-// let b = Karen2()
-// b.say(words: AVSpeechUtterance(string: "Hello"), voice: AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.samantha.premium")!)
-
-
-
-let a = SpeechSynth()
-let utterance = AVSpeechUtterance(string: "Have nice day")
-utterance.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.yuri.premium")
-
-a.speak(utterance)
-let utterance2 = AVSpeechUtterance(string: "it is a great day.")
-utterance2.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.yuri.premium")
-
-a.speak(utterance2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class Speech: AVSpeechSynthesizer {
-    // var voice: NSSpeechSynthesizer.VoiceName
-    
-    let a = self
-    let synth = NSSpeechSynthesizer()
-    let speechDelegate = self
-    
-    var speakStarted: (() -> ()) = {}
-    var speakComplete: (() -> ()) = {}
-    
-    override init() {
-    }
-}
-
-extension Speech: AVSpeechSynthesizerDelegate {
-    
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        speakComplete()
-    }
-}
-
-
-class SpeechDelegate: NSObject, NSSpeechSynthesizerDelegate {
-    func speechSynthesizer(_ sender: NSSpeechSynthesizer, willSpeakWord characterRange: NSRange, of string: String) {
-        print("will speak")
-        speakStarted()
-    }
-    
-    func speechSynthesizer(_ sender: NSSpeechSynthesizer, didFinishSpeaking finishedSpeaking: Bool) {
-        print("did speak")
-        speakComplete()
-    }
-}
-
-
-
-
-
-class Karen: Speech {
-    
-    let voiceKaren = NSSpeechSynthesizer.VoiceName(rawValue: "com.apple.speech.synthesis.voice.samantha")
-    
-    
-    init() {
-        
-        synth.setVoice(voiceKaren)
-        
-        
-        voice =
-        blab = NSSpeechSynthesizer()
-        blabDelegate = KarenDelegate()
-        blab.setVoice(voice)
-        blab.delegate = blabDelegate
-        queue = DispatchQueue(label: "Queue")
-        
-    }
-    
-    
-    func checkTrigger(inputPhrase: String) {
-        queue.async {
-            if self.blab.isSpeaking {
-                return
+        // new thread
+        self.dispatchQueue.async {
+            for portion in self.dialogue {
+                self.dispatchGroup.enter()
+                let utterance = AVSpeechUtterance(string: portion.content)
+                utterance.voice = portion.voice
+                utterance.rate = portion.rate
+                utterance.pitchMultiplier = portion.pitch
+                utterance.preUtteranceDelay = portion.preUtteranceDelay
+                utterance.postUtteranceDelay = portion.postUtteranceDelay
+                self.speak(utterance)
             }
             
-            for i in self.triggerAndBlab {
-                if i[0].contains(inputPhrase) {
-                    self.blab.startSpeaking(i[1])
-                }
-            }
-        } // queue
-    } // Karen.checkTrigger()
+            self.dispatchGroup.wait()
+            self.speakComplete()
+        } // dispatchQueue
+        
+    } // SpeechSynth.speakDialogue
+    
+    
+    private func loadNPlay(dialogue: [DialoguePortion]) {
+        self.dialogue = dialogue
+        speakDialogue()
+    } // SpeechSynth.loadNPlay
+    
+    
+    func checkTrigger(sentence: String) {
+        for rant in dialogues {
+            if sentence.lowercased().contains(rant.trigger.lowercased()) {
+                loadNPlay(dialogue: rant.dialogue)
+                break
+            } // if
+        } // loop
+    } // SpeechSynth.checkTrigger
+    
+} // class SpeechSynth
+
+
+extension SpeechSynth: AVSpeechSynthesizerDelegate {
+    internal func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        dispatchGroup.leave()
+    }
 }
 
