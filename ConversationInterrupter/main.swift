@@ -9,82 +9,89 @@
 import Foundation
 
 let testQueue = DispatchQueue(label: "test")
-let testGroup = DispatchGroup()
+let testQueue2 = DispatchQueue(label: "test2")
 
 let a = SpeechSynth()
 
 
 var run = true
-testGroup.enter()
 
 import Speech
 
-let testSpeech = AVSpeechSynthesizer()
+
+
+class TestSpeech: AVSpeechSynthesizer, AVSpeechSynthesizerDelegate {
+    let speaker = self
+    
+    override init() {
+        
+        super.init()
+        delegate = self
+    }
+    
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
+        print("paused!")
+    }
+    
+}
+
+let testSpeech = TestSpeech()
+
 let u1 = AVSpeechUtterance(string: "test 1")
 u1.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
 let u2 = AVSpeechUtterance(string: "test 2")
 u2.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
 
 
-while run {
-    let input = readLine()
-    
-    switch input {
-    case "manager":
-        a.checkTrigger(sentence: "manager")
+
+
+let group2 = DispatchGroup()
+
+testQueue2.async {
+    print("test 2 queue entered")
+    while run {
+        print("input loop restarted")
+        let input = readLine()
         
-    case "children":
-        a.checkTrigger(sentence: "children")
+        switch input {
+        case "manager":
+            
+            group2.enter()
+            
+            a.speakComplete = {
+                group2.leave()
+            }
+            
+            a.checkTrigger(sentence: "manager")
+            
+            group2.wait()
+            
+        case "children":
+            a.checkTrigger(sentence: "children")
+             
+        case "test":
+            testQueue.async {
+                testSpeech.speak(u1)
+                testSpeech.speak(u2)
+                print("test queue end of closure")
+            }
+            print("testqueue finished")
+             
+             
+        case "exit":
+            run = false
+            exit(EXIT_SUCCESS)
         
-    case "test":
-        testQueue.async {
-            testSpeech.speak(u1)
-            testSpeech.speak(u2)
-        }
-        
-        
-    case "exit":
-        run = false
-        testGroup.leave()
-        
-    default:
-        continue
-    } // switch
+        default:
+            continue
+        } // switch
+    }
 }
 
 
 
 
-testGroup.wait()
+
+RunLoop.main.run()
 
 
-
-var run2 = true
-
-import Speech
-let dispatchQueue = DispatchQueue(label: "queue")
-let speech = AVSpeechSynthesizer()
-let phrase1 = AVSpeechUtterance(string: "test 1")
-phrase1.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
-let phrase2 = AVSpeechUtterance(string: "test 2")
-phrase2.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
-
-
-while run2 {
-    let input = readLine()
-    
-    switch input {
-    case "test":
-        
-        dispatchQueue.async {
-            speech.speak(phrase1)
-            speech.speak(phrase2)
-        }
-        
-    case "exit":
-        run2 = false
-        
-    default:
-        continue
-    } // switch
-}

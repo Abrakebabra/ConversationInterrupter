@@ -78,7 +78,7 @@ struct DialoguePortion {
     let voice: AVSpeechSynthesisVoice?      // voice to use
     let rate: Float                         // rate (Speech rates are values in the range between AVSpeechUtteranceMinimumSpeechRate and AVSpeechUtteranceMaximumSpeechRate. Lower values correspond to slower speech, and vice versa. The default value is AVSpeechUtteranceDefaultSpeechRate.)
     let volume: Float
-    let pitch: Float              // pitchMultiplier
+    let pitch: Float                        // pitchMultiplier
     let postUtteranceDelay: TimeInterval    // milliseconds
     let preUtteranceDelay: TimeInterval     // milliseconds
     
@@ -134,6 +134,11 @@ var dialogues: [Dialogue] = [
 
 
 
+
+
+
+
+
 // MARK: Class SpeechSynth
 class SpeechSynth: AVSpeechSynthesizer {
     
@@ -155,7 +160,6 @@ class SpeechSynth: AVSpeechSynthesizer {
         }
         speakComplete = {
             print("spek finished!")}
-        
         super.init()
         delegate = self     // inherited in extension
     }
@@ -203,8 +207,10 @@ class SpeechSynth: AVSpeechSynthesizer {
 
 
 extension SpeechSynth: AVSpeechSynthesizerDelegate {
+    
     internal func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
         dispatchGroup.leave()
     }
+    
 }
 
