@@ -8,75 +8,41 @@
 
 import Foundation
 
-let testQueue = DispatchQueue(label: "test")
-let testQueue2 = DispatchQueue(label: "test2")
+let commandQueue = DispatchQueue(label: "commandQueue")
 
 let a = SpeechSynth()
 
+var interrupter: Interrupter?
+
+do {
+    interrupter = try Interrupter()
+    try interrupter?.micToRequest()
+}
+catch let error {
+    print(error)
+    exit(EXIT_SUCCESS)
+}
 
 var run = true
 
-import Speech
-
-
-
-class TestSpeech: AVSpeechSynthesizer, AVSpeechSynthesizerDelegate {
-    let speaker = self
-    
-    override init() {
-        
-        super.init()
-        delegate = self
-    }
-    
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didPause utterance: AVSpeechUtterance) {
-        print("paused!")
-    }
-    
+interrupter?.karen.speakStarted = {
+    interrupter?.stopRecognition()
 }
 
-let testSpeech = TestSpeech()
-
-let u1 = AVSpeechUtterance(string: "test 1")
-u1.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
-let u2 = AVSpeechUtterance(string: "test 2")
-u2.voice = AVSpeechSynthesisVoice(identifier: "com.apple.speech.synthesis.voice.ava.premium")
-
-
+interrupter?.karen.speakComplete = {
+    interrupter?.startRecognition()
+}
 
 
 let group2 = DispatchGroup()
 
-testQueue2.async {
-    print("test 2 queue entered")
+commandQueue.async {
     while run {
-        print("input loop restarted")
         let input = readLine()
         
         switch input {
-        case "manager":
-            
-            group2.enter()
-            
-            a.speakComplete = {
-                group2.leave()
-            }
-            
-            a.checkTrigger(sentence: "manager")
-            
-            group2.wait()
-            
-        case "children":
-            a.checkTrigger(sentence: "children")
-             
-        case "test":
-            testQueue.async {
-                testSpeech.speak(u1)
-                testSpeech.speak(u2)
-                print("test queue end of closure")
-            }
-            print("testqueue finished")
-             
+        case "go":
+            interrupter?.startRecognition()
              
         case "exit":
             run = false

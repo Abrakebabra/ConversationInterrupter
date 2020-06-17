@@ -35,6 +35,7 @@ enum Voices {
     case yuri
     
     
+    // MARK: func voiceObj
     func voiceObj() -> AVSpeechSynthesisVoice? {
         switch self {
         case .allison:
@@ -83,7 +84,7 @@ struct DialoguePortion {
     let preUtteranceDelay: TimeInterval     // milliseconds
     
     
-    
+    // MARK: init
     /// rate: 0.x-0.89,  volume: 0.x-1.0,  pitch 0.1-10.0? (once pitch is set, cannot be changed?)  delays: milliseconds
     init(content: String, voice: Voices,
          rate: Float = AVSpeechUtteranceDefaultSpeechRate, volume: Float = 1.0, pitch: Float = 1.0, postDelay: TimeInterval = 0.0, preDelay: TimeInterval = 0.0) {
@@ -146,11 +147,12 @@ class SpeechSynth: AVSpeechSynthesizer {
     private let dispatchQueue: DispatchQueue
     private let dispatchGroup: DispatchGroup
     private var dialogue: [DialoguePortion]
+    private var pauseTrigger = false
     var speakStarted: (() -> ())
     var speakComplete: (() -> ())
     
     
-    
+    // MARK: init
     override init() {
         dispatchQueue = DispatchQueue(label: "synth queue")
         dispatchGroup = DispatchGroup()
@@ -159,12 +161,15 @@ class SpeechSynth: AVSpeechSynthesizer {
             print("spek started!")
         }
         speakComplete = {
-            print("spek finished!")}
+            print("spek finished!")
+            
+        }
         super.init()
         delegate = self     // inherited in extension
     }
     
     
+    // MARK: func speakDialogue
     private func speakDialogue() {
         self.speakStarted()
         
@@ -188,15 +193,22 @@ class SpeechSynth: AVSpeechSynthesizer {
     } // SpeechSynth.speakDialogue
     
     
+    // MARK: func loadNPlay
     private func loadNPlay(dialogue: [DialoguePortion]) {
         self.dialogue = dialogue
         speakDialogue()
     } // SpeechSynth.loadNPlay
     
     
+    // MARK: func checkTrigger
     func checkTrigger(sentence: String) {
+        if self.pauseTrigger == true {
+            return
+        }
+        
         for rant in dialogues {
             if sentence.lowercased().contains(rant.trigger.lowercased()) {
+                self.pauseTrigger = true
                 loadNPlay(dialogue: rant.dialogue)
                 break
             } // if
@@ -206,9 +218,11 @@ class SpeechSynth: AVSpeechSynthesizer {
 } // class SpeechSynth
 
 
+// MARK: extension SpeechSynth
 extension SpeechSynth: AVSpeechSynthesizerDelegate {
     
     internal func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        self.pauseTrigger = false
         dispatchGroup.leave()
     }
     
